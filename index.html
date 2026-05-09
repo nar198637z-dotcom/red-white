@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>紅白猜 - 雙人桌遊</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    color: #fff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+
+  /* ====== 開始畫面 ====== */
+  #start-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    width: 100%;
+    gap: 30px;
+  }
+
+  .game-title {
+    font-size: 4rem;
+    font-weight: 900;
+    background: linear-gradient(45deg, #ff6b6b, #ffffff, #4ecdc4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: none;
+    letter-spacing: 4px;
+    animation: titlePulse 3s ease-in-out infinite;
+  }
+
+  @keyframes titlePulse {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.3); }
+  }
+
+  .game-subtitle {
+    font-size: 1.1rem;
+    opacity: 0.7;
+    letter-spacing: 2px;
+  }
+
+  .start-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 24px;
+    padding: 40px;
+    width: 100%;
+    max-width: 480px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+
+  .section-title {
+    font-size: 1rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    opacity: 0.6;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+
+  /* 模式選擇 */
+  .mode-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 30px;
+  }
+
+  .mode-btn {
+    padding: 20px 15px;
+    border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 16px;
+    background: rgba(255,255,255,0.05);
+    color: white;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .mode-btn .mode-icon { font-size: 2rem; }
+  .mode-btn .mode-name { font-size: 1rem; }
+  .mode-btn .mode-desc { font-size: 0.75rem; opacity: 0.6; }
+
+  .mode-btn:hover {
+    border-color: rgba(255,255,255,0.5);
+    background: rgba(255,255,255,0.1);
+    transform: translateY(-3px);
+  }
+
+  .mode-btn.active {
+    border-color: #ffd93d;
+    background: rgba(255,217,61,0.15);
+    box-shadow: 0 0 20px rgba(255,217,61,0.3);
+  }
+
+  /* 顏色選擇 */
+  .color-section {
+    display: none;
+    margin-bottom: 30px;
+  }
+
+  .color-section.show { display: block; }
+
+  .color-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .color-btn {
+    padding: 20px;
+    border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 16px;
+    background: rgba(255,255,255,0.05);
+    color: white;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .color-btn .color-icon { font-size: 2.5rem; }
+
+  .color-btn.red-btn:hover, .color-btn.red-btn.active {
+    border-color: #ff6b6b;
+    background: rgba(255,107,107,0.2);
+    box-shadow: 0 0 20px rgba(255,107,107,0.4);
+  }
+
+  .color-btn.white-btn:hover, .color-btn.white-btn.active {
+    border-color: #f8f9fa;
+    background: rgba(248,249,250,0.15);
+    box-shadow: 0 0 20px rgba(248,249,250,0.3);
+  }
+
+  /* 難度選擇 */
+  .difficulty-section {
+    display: none;
+    margin-bottom: 30px;
+  }
+
+  .difficulty-section.show { display: block; }
+
+  .difficulty-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .diff-btn {
+    padding: 15px 10px;
+    border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 14px;
+    background: rgba(255,255,255,0.05);
+    color: white;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+  }
+
+  .diff-btn .diff-icon { font-size: 1.5rem; display: block; margin-bottom: 5px; }
+
+  .diff-btn:hover { transform: translateY(-2px); }
+
+  .diff-btn.easy.active { border-color: #2ecc71; background: rgba(46,204,113,0.2); }
+  .diff-btn.normal.active { border-color: #f39c12; background: rgba(243,156,18,0.2); }
+  .diff-btn.hard.active { border-color: #e74c3c; background: rgba(231,76,60,0.2); }
+
+  /* 開始按鈕 */
+  .start-btn {
+    width: 100%;
+    padding: 18px;
+    border: none;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    letter-spacing: 2px;
+    display: none;
+  }
+
+  .start-btn.show {
+    display: block;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .start-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(255,107,107,0.5);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ====== 遊戲畫面 ====== */
+  #game-screen { display: none; width: 100%; max-width: 1100px; }
+
+  .game-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding: 12px 20px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .header-title {
+    font-size: 1.5rem;
+    font-weight: 900;
+    background: linear-gradient(45deg, #ff6b6b, #fff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .turn-indicator {
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 1rem;
+    transition: all 0.4s ease;
+  }
+
+  .turn-indicator.red {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+    box-shadow: 0 0 15px rgba(255,107,107,0.5);
+  }
+
+  .turn-indicator.white {
+    background: linear-gradient(135deg, #f8f9fa, #dee2e6);
+    color: #333;
+    box-shadow: 0 0 15px rgba(255,255,255,0.3);
+  }
+
+  .back-btn {
+    padding: 8px 16px;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.1);
+    color: white;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+  }
+
+  .back-btn:hover { background: rgba(255,255,255,0.2); }
+
+  /* 訊息列 */
+  .message-bar {
+    text-align: center;
+    padding: 10px 20px;
+    margin-bottom: 15px;
+    background: rgba(255,217,61,0.1);
+    border: 1px solid rgba(255,217,61,0.3);
+    border-radius: 12px;
+    color: #ffd93d;
+    font-size: 0.95rem;
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+  }
+
+  /* 主遊戲區域 */
+  .game-main {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  /* 玩家面板 */
+  .player-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    min-width: 110px;
+  }
+
+  .player-info {
+    text-align: center;
+    padding: 10px 15px;
+    border-radius: 14px;
+    width: 100%;
+    border: 2px solid transparent;
+    transition: all 0.3s;
+  }
+
+  .player-info.red-info {
+    background: rgba(255,107,107,0.1);
+    border-color: rgba(255,107,107,0.3);
+  }
+
+  .player-info.white-info {
+    background: rgba(248,249,250,0.1);
+    border-color: rgba(248,249,250,0.3);
+  }
+
+  .player-info.active-player {
+    box-shadow: 0 0 20px rgba(255,217,61,0.4);
+    border-color: #ffd93d;
+  }
+
+  .player-name { font-size: 0.9rem; font-weight: bold; margin-bottom: 4px; }
+  .player-score-big { font-size: 2rem; font-weight: 900; }
+  .player-cards-count { font-size: 0.75rem; opacity: 0.6; }
+
+  .hand-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 520px;
+    overflow-y: auto;
+    padding: 8px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.1);
+    width: 100%;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.3) transparent;
+  }
+
+  /* 卡牌 */
+  .card {
+    width: 90px;
+    height: 108px;
+    border-radius: 12px;
+    border: 2px solid transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-weight: bold;
+    position: relative;
+    transition: all 0.25s ease;
+    user-select: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    flex-shrink: 0;
+  }
+
+  .card:hover:not(.disabled):not(.on-board) {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  }
+
+  .card.selected {
+    border-color: #ffd93d !important;
+    transform: translateY(-8px) scale(1.08);
+    box-shadow: 0 0 25px rgba(255,217,61,0.7) !important;
+  }
+
+  .card.red-face {
+    background: linear-gradient(145deg, #ff6b6b, #c0392b);
+    color: white;
+    border-color: rgba(255,255,255,0.2);
+  }
+
+  .card.white-face {
+    background: linear-gradient(145deg, #f8f9fa, #ced4da);
+    color: #2c3e50;
+    border-color: rgba(0,0,0,0.1);
+  }
+
+  .card.wild {
+    background: linear-gradient(145deg, #9b59b6, #2980b9);
+    color: white;
+    border-color: #f39c12;
+    box-shadow: 0 0 15px rgba(155,89,182,0.5);
+  }
+
+  .card.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .card.on-board {
+    cursor: default;
+    width: 80px;
+    height: 80px;
+  }
+
+  .card.just-placed {
+    animation: placedAnim 0.5s ease;
+  }
+
+  .card.just-flipped {
+    animation: flipAnim 0.6s ease;
+  }
+
+  @keyframes placedAnim {
+    0% { transform: scale(0.5); opacity: 0; }
+    70% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  @keyframes flipAnim {
+    0% { transform: rotateY(0); }
+    50% { transform: rotateY(90deg); }
+    100% { transform: rotateY(0); }
+  }
+
+  .card-suit { font-size: 1.6rem; margin-bottom: 4px; line-height: 1; }
+  .card-value { font-size: 1.1rem; line-height: 1; }
+  .card-label { font-size: 0.65rem; opacity: 0.8; }
+
+  /* 棋盤 */
+  .board-container { display: flex; flex-direction: column; align-items: center; gap: 15px; }
+
+  .board {
+    display: grid;
+    grid-template-columns: repeat(4, 96px);
+    grid-template-rows: repeat(4, 96px);
+    gap: 8px;
+    background: rgba(0,0,0,0.35);
+    padding: 16px;
+    border-radius: 22px;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+
+  .cell {
+    width: 96px;
+    height: 96px;
+    border-radius: 14px;
+    border: 2px dashed rgba(255,255,255,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    position: relative;
+    background: rgba(255,255,255,0.03);
+  }
+
+  .cell.inner { background: rgba(255,217,61,0.05); border-color: rgba(255,217,61,0.2); }
+
+  .cell.valid-move {
+    border-color: #ffd93d;
+    background: rgba(255,217,61,0.12);
+    cursor: pointer;
+    animation: validPulse 1.5s ease-in-out infinite;
+  }
+
+  .cell.valid-move:hover {
+    background: rgba(255,217,61,0.25);
+    transform: scale(1.04);
+  }
+
+  @keyframes validPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255,217,61,0.3); }
+    50% { box-shadow: 0 0 0 6px rgba(255,217,61,0); }
+  }
+
+  .pos-badge {
+    position: absolute;
+    top: 3px;
+    right: 5px;
+    font-size: 0.6rem;
+    opacity: 0.4;
+    pointer-events: none;
+    font-weight: bold;
+  }
+
+  /* 計分詳情 */
+  .score-breakdown {
+    display: flex;
+    gap: 15px;
+    font-size: 0.8rem;
+    opacity: 0.7;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .score-breakdown span {
+    background: rgba(255,255,255,0.1);
+    padding: 4px 10px;
+    border-radius: 8px;
+  }
+
+  /* 電腦思考指示 */
+  .thinking-indicator {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(155,89,182,0.2);
+    border: 1px solid rgba(155,89,182,0.4);
+    border-radius: 12px;
+    font-size: 0.9rem;
+    color: #c39bd3;
+  }
+
+  .thinking-indicator.show { display: flex; }
+
+  .thinking-dots span {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #c39bd3;
+    margin: 0 2px;
+    animation: thinkDot 1.2s ease-in-out infinite;
+  }
+
+  .thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes thinkDot {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+
+  /* 彈窗 */
+  .modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px);
+  }
+
+  .modal.show { display: flex; }
+
+  .modal-content {
+    background: linear-gradient(145deg, #1e2a4a, #2c3e6b);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 24px;
+    padding: 35px;
+    text-align: center;
+    min-width: 320px;
+    max-width: 450px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+    animation: modalIn 0.3s ease;
+  }
+
+  @keyframes modalIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .modal-content h3 {
+    margin-bottom: 20px;
+    color: #ffd93d;
+    font-size: 1.4rem;
+  }
+
+  .wild-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+  }
+
+  .wild-btn {
+    padding: 15px 20px;
+    border: 2px solid transparent;
+    border-radius: 14px;
+    font-size: 1.4rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.25s;
+    min-width: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .wild-btn span { font-size: 0.75rem; font-weight: normal; }
+
+  .wild-btn:hover { transform: scale(1.1); }
+  .wild-btn.scissors { background: rgba(231,76,60,0.3); border-color: #e74c3c; color: white; }
+  .wild-btn.rock { background: rgba(149,165,166,0.3); border-color: #95a5a6; color: white; }
+  .wild-btn.paper { background: rgba(39,174,96,0.3); border-color: #27ae60; color: white; }
+
+  /* 結果彈窗 */
+  .result-winner {
+    font-size: 3rem;
+    margin: 15px 0;
+  }
+
+  .result-title {
+    font-size: 1.8rem;
+    font-weight: 900;
+    margin-bottom: 20px;
+  }
+
+  .result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin: 20px 0;
+  }
+
+  .result-side {
+    padding: 15px;
+    border-radius: 14px;
+    text-align: center;
+  }
+
+  .result-side.red-side { background: rgba(255,107,107,0.2); border: 1px solid #ff6b6b; }
+  .result-side.white-side { background: rgba(248,249,250,0.15); border: 1px solid #f8f9fa; }
+
+  .result-score-num { font-size: 2.5rem; font-weight: 900; }
+  .result-detail { font-size: 0.8rem; opacity: 0.7; margin-top: 5px; }
+
+  .result-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 20px;
+  }
+
+  .result-btn {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 14px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s;
+  }
+
+  .result-btn:hover { transform: translateY(-3px); }
+  .result-btn.primary { background: linear-gradient(135deg, #ff6b6b, #ee5a52); color: white; }
+  .result-btn.secondary { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); }
+
+  @media (max-width: 768px) {
+    .game-title { font-size: 2.5rem; }
+    .board { grid-template-columns: repeat(4, 72px); grid-template-rows: repeat(4, 72px); }
+    .cell { width: 72px; height: 72px; }
+    .card.on-board { width: 62px; height: 62px; }
+    .card.on-board .card-suit { font-size: 1.2rem; }
+    .card { width: 80px; height: 96px; }
+    .game-main { gap: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ====== 開始畫面 ====== -->
+<div id="start-screen">
+  <div class="game-title">紅白猜</div>
+  <div class="game-subtitle">剪刀石頭布 · 策略對戰桌遊</div>
+
+  <div class="start-card">
+    <!-- 遊戲模式 -->
+    <div class="section-title">選擇遊戲模式</div>
+    <div class="mode-buttons">
+      <button class="mode-btn" onclick="selectMode('pvp')">
+        <span class="mode-icon">👥</span>
+        <span class="mode-name">雙人對戰</span>
+        <span class="mode-desc">本機兩人輪流</span>
+      </button>
+      <button class="mode-btn" onclick="selectMode('pve')">
+        <span class="mode-icon">🤖</span>
+        <span class="mode-name">對戰電腦</span>
+        <span class="mode-desc">挑戰AI智能</span>
+      </button>
+    </div>
+
+    <!-- 顏色選擇（PvE才顯示） -->
+    <div id="color-section" class="color-section">
+      <div class="section-title">選擇你的顏色</div>
+      <div class="color-buttons">
+        <button class="color-btn red-btn" onclick="selectColor('red')">
+          <span class="color-icon">🔴</span>
+          <span>紅方（先手）</span>
+        </button>
+        <button class="color-btn white-btn" onclick="selectColor('white')">
+          <span class="color-icon">⚪</span>
+          <span>白方（後手）</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 難度選擇（PvE才顯示） -->
+    <div id="difficulty-section" class="difficulty-section">
+      <div class="section-title">選擇難度</div>
+      <div class="difficulty-buttons">
+        <button class="diff-btn easy" onclick="selectDifficulty('easy')">
+          <span class="diff-icon">🌱</span>簡單
+        </button>
+        <button class="diff-btn normal" onclick="selectDifficulty('normal')">
+          <span class="diff-icon">⚔️</span>普通
+        </button>
+        <button class="diff-btn hard" onclick="selectDifficulty('hard')">
+          <span class="diff-icon">💀</span>困難
+        </button>
+      </div>
+    </div>
+
+    <button id="start-btn" class="start-btn" onclick="startGame()">開始遊戲 ▶</button>
+  </div>
+</div>
+
+<!-- ====== 遊戲畫面 ====== -->
+<div id="game-screen">
+  <div class="game-header">
+    <button class="back-btn" onclick="goBack()">← 返回</button>
+    <div class="header-title">紅白猜</div>
+    <div id="turn-indicator" class="turn-indicator red">🔴 紅方回合</div>
+  </div>
+
+  <div id="message-bar" class="message-bar">遊戲開始！</div>
+
+  <div id="thinking-indicator" class="thinking-indicator">
+    🤖 電腦思考中
+    <div class="thinking-dots"><span></span><span></span><span></span></div>
+  </div>
+
+  <div class="game-main">
+    <!-- 紅方面板 -->
+    <div class="player-panel" id="red-panel">
+      <div class="player-info red-info" id="red-info">
+        <div class="player-name" id="red-name">🔴 紅方</div>
+        <div class="player-score-big" id="red-score">0</div>
+        <div class="player-cards-count" id="red-cards-count">手牌：8張</div>
+      </div>
+      <div class="hand-cards" id="red-hand"></div>
+    </div>
+
+    <!-- 棋盤 -->
+    <div class="board-container">
+      <div class="board" id="board"></div>
+      <div class="score-breakdown" id="score-breakdown"></div>
+    </div>
+
+    <!-- 白方面板 -->
+    <div class="player-panel" id="white-panel">
+      <div class="player-info white-info" id="white-info">
+        <div class="player-name" id="white-name">⚪ 白方</div>
+        <div class="player-score-big" id="white-score">0</div>
+        <div class="player-cards-count" id="white-cards-count">手牌：8張</div>
+      </div>
+      <div class="hand-cards" id="white-hand"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 萬用牌選擇彈窗 -->
+<div id="wild-modal" class="modal">
+  <div class="modal-content">
+    <h3>🌟 選擇萬用牌花色</h3>
+    <p style="opacity:0.7; margin-bottom:20px; font-size:0.9rem;">萬用牌數值為 0，可選任意花色</p>
+    <div class="wild-buttons">
+      <button class="wild-btn scissors" onclick="selectWildSuit('✂️')">✂️<span>剪刀</span></button>
+      <button class="wild-btn rock" onclick="selectWildSuit('🗿')">🗿<span>石頭</span></button>
+      <button class="wild-btn paper" onclick="selectWildSuit('📄')">📄<span>布</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- 遊戲結果彈窗 -->
+<div id="result-modal" class="modal">
+  <div class="modal-content">
+    <div class="result-winner" id="result-winner">🏆</div>
+    <div class="result-title" id="result-title">遊戲結束</div>
+    <div class="result-grid">
+      <div class="result-side red-side">
+        <div>🔴 紅方</div>
+        <div class="result-score-num" id="result-red-score">0</div>
+        <div class="result-detail" id="result-red-detail"></div>
+      </div>
+      <div class="result-side white-side">
+        <div>⚪ 白方</div>
+        <div class="result-score-num" id="result-white-score">0</div>
+        <div class="result-detail" id="result-white-detail"></div>
+      </div>
+    </div>
+    <div class="result-buttons">
+      <button class="result-btn primary" onclick="startGame()">🔄 再玩一局</button>
+      <button class="result-btn secondary" onclick="goBack()">🏠 返回主選單</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ====================================================
+// 常數設定
+// ====================================================
+const SUITS = { SCISSORS: '✂️', ROCK: '🗿', PAPER: '📄', WILD: '🌟' };
+const SUIT_BEATS = { '✂️': '📄', '🗿': '✂️', '📄': '🗿' };
+const INNER_CELLS = [5, 6, 9, 10];
+
+// ====================================================
+// 遊戲設定
+// ====================================================
+let settings = {
+  mode: null,       // 'pvp' | 'pve'
+  playerColor: null, // 'red' | 'white'
+  difficulty: null   // 'easy' | 'normal' | 'hard'
+};
+
+// ====================================================
+// 遊戲狀態
+// ====================================================
+let gs = {
+  board: Array(16).fill(null),
+  redHand: [],
+  whiteHand: [],
+  currentPlayer: 'red',
+  selectedCard: null,
+  pendingWild: null,
+  gameEnded: false,
+  aiPlayer: null,
+  flippedCells: new Set()
+};
+
+// ====================================================
+// 開始畫面邏輯
+// ====================================================
+function selectMode(mode) {
+  settings.mode = mode;
+  settings.playerColor = null;
+  settings.difficulty = null;
+
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+
+  const colorSec = document.getElementById('color-section');
+  const diffSec = document.getElementById('difficulty-section');
+  const startBtn = document.getElementById('start-btn');
+
+  if (mode === 'pve') {
+    colorSec.classList.add('show');
+    diffSec.classList.remove('show');
+    startBtn.classList.remove('show');
+    document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+  } else {
+    colorSec.classList.remove('show');
+    diffSec.classList.remove('show');
+    startBtn.classList.add('show');
+  }
+}
+
+function selectColor(color) {
+  settings.playerColor = color;
+  document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  document.getElementById('difficulty-section').classList.add('show');
+  document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('start-btn').classList.remove('show');
+}
+
+function selectDifficulty(diff) {
+  settings.difficulty = diff;
+  document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  if (settings.playerColor) {
+    document.getElementById('start-btn').classList.add('show');
+  }
+}
+
+// ====================================================
+// 遊戲初始化
+// ====================================================
+function startGame() {
+  if (settings.mode === 'pve' && (!settings.playerColor || !settings.difficulty)) return;
+
+  // 切換畫面
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('game-screen').style.display = 'block';
+
+  // 設定 AI
+  gs.aiPlayer = (settings.mode === 'pve')
+    ? (settings.playerColor === 'red' ? 'white' : 'red')
+    : null;
+
+  // 設定玩家名稱
+  if (settings.mode === 'pve') {
+    const humanName = settings.playerColor === 'red' ? '🔴 你（紅方）' : '⚪ 你（白方）';
+    const aiName = settings.playerColor === 'red' ? '🤖 電腦（白方）' : '🤖 電腦（紅方）';
+    document.getElementById('red-name').textContent = settings.playerColor === 'red' ? humanName : aiName;
+    document.getElementById('white-name').textContent = settings.playerColor === 'white' ? humanName : aiName;
+  } else {
+    document.getElementById('red-name').textContent = '🔴 紅方';
+    document.getElementById('white-name').textContent = '⚪ 白方';
+  }
+
+  // 重置狀態
+  gs = {
+    board: Array(16).fill(null),
+    redHand: [],
+    whiteHand: [],
+    currentPlayer: 'red',
+    selectedCard: null,
+    pendingWild: null,
+    gameEnded: false,
+    aiPlayer: gs.aiPlayer,
+    flippedCells: new Set()
+  };
+
+  // 發牌
+  const deck = createDeck();
+  shuffleDeck(deck);
+  gs.redHand = deck.slice(0, 8).map(c => ({ ...c, owner: 'red' }));
+  gs.whiteHand = deck.slice(8, 16).map(c => ({ ...c, owner: 'white' }));
+
+  // 渲染
+  renderAll();
+  setMessage('遊戲開始！紅方先手，請選擇手牌後點擊棋盤放置。');
+  hideModal('result-modal');
+
+  // 若 AI 是紅方（先手）
+  if (gs.aiPlayer === 'red') {
+    setTimeout(doAiTurn, 800);
+  }
+}
+
+function goBack() {
+  document.getElementById('game-screen').style.display = 'none';
+  document.getElementById('start-screen').style.display = 'flex';
+  hideModal('result-modal');
+  hideModal('wild-modal');
+}
+
+// ====================================================
+// 牌組
+// ====================================================
+function createDeck() {
+  const deck = [];
+  
+  // 創建基礎牌（剪石布各1-5）
+  ['✂️', '🗿', '📄'].forEach(suit => {
+    for (let v = 1; v <= 5; v++) deck.push({ suit, value: v, isWild: false });
+  });
+
+  // 創建萬用牌
+  deck.push({ suit: '🌟', value: 0, isWild: true });
+
+  return deck;
+}
+
+function shuffleDeck(deck) {
+  for (let i = deck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+}
+
+// ====================================================
+// 渲染
+// ====================================================
+function renderAll() {
+  renderBoard();
+  renderHands();
+  updateScore();
+  updateStatus();
+  updateActivePanel();
+}
+
+function renderBoard() {
+  const boardEl = document.getElementById('board');
+  boardEl.innerHTML = '';
+
+  for (let i = 0; i < 16; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cell' + (INNER_CELLS.includes(i) ? ' inner' : '');
+    cell.dataset.index = i;
+
+    const badge = document.createElement('div');
+    badge.className = 'pos-badge';
+    badge.textContent = INNER_CELLS.includes(i) ? '★2' : '1';
+    cell.appendChild(badge);
+
+    if (gs.board[i]) {
+      const cardEl = createCardEl(gs.board[i], true);
+      if (gs.flippedCells.has(i)) {
+        cardEl.classList.add('just-flipped');
+      }
+      cell.appendChild(cardEl);
+    }
+
+    if (!gs.gameEnded) {
+      cell.addEventListener('click', () => handleCellClick(i));
+    }
+    boardEl.appendChild(cell);
+  }
+
+  gs.flippedCells.clear();
+  if (gs.selectedCard) highlightValidMoves();
+}
+
+function renderHands() {
+  renderOneHand('red', gs.redHand, 'red-hand');
+  renderOneHand('white', gs.whiteHand, 'white-hand');
+}
+
+function renderOneHand(player, hand, containerId) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+
+  hand.forEach((card, idx) => {
+    const cardEl = createCardEl(card, false);
+
+    const isMyTurn = gs.currentPlayer === player && !gs.gameEnded;
+    const isAiCard = gs.aiPlayer === player;
+
+    if (isAiCard && settings.mode === 'pve') {
+      // AI 手牌顯示背面（不顯示花色數值）
+      cardEl.querySelector('.card-suit').textContent = '?';
+      cardEl.querySelector('.card-value').textContent = '?';
+      cardEl.classList.add('disabled');
+    } else if (!isMyTurn) {
+      cardEl.classList.add('disabled');
+    } else {
+      // 選中狀態
+      if (gs.selectedCard && gs.selectedCard.player === player && gs.selectedCard.index === idx) {
+        cardEl.classList.add('selected');
+      }
+      cardEl.addEventListener('click', () => handleCardClick(player, idx));
+    }
+
+    container.appendChild(cardEl);
+  });
+
+  // 更新手牌數量
+  document.getElementById(`${player}-cards-count`).textContent = `手牌：${hand.length}張`;
+}
+
+function createCardEl(card, isOnBoard) {
+  const el = document.createElement('div');
+  let cls = 'card';
+
+  if (isOnBoard) {
+    cls += ` ${card.owner}-face on-board`;
+  } else if (card.isWild) {
+    cls += ' wild';
+  } else {
+    cls += ` ${card.owner}-face`;
+  }
+
+  el.className = cls;
+
+  const suit = document.createElement('div');
+  suit.className = 'card-suit';
+  suit.textContent = card.suit;
+
+  const val = document.createElement('div');
+  val.className = 'card-value';
+  val.textContent = card.isWild ? '萬' : card.value;
+
+  el.appendChild(suit);
+  el.appendChild(val);
+  return el;
+}
+
+function updateStatus() {
+  const ind = document.getElementById('turn-indicator');
+  if (gs.currentPlayer === 'red') {
+    ind.textContent = '🔴 紅方回合';
+    ind.className = 'turn-indicator red';
+  } else {
+    ind.textContent = '⚪ 白方回合';
+    ind.className = 'turn-indicator white';
+  }
+
+  // 電腦思考指示
+  const thinking = document.getElementById('thinking-indicator');
+  if (gs.aiPlayer === gs.currentPlayer && !gs.gameEnded) {
+    thinking.classList.add('show');
+  } else {
+    thinking.classList.remove('show');
+  }
+}
+
+function updateActivePanel() {
+  document.getElementById('red-info').classList.toggle('active-player', gs.currentPlayer === 'red');
+  document.getElementById('white-info').classList.toggle('active-player', gs.currentPlayer === 'white');
+}
+
+function updateScore() {
+  const sc = calcScore();
+  document.getElementById('red-score').textContent = sc.red;
+  document.getElementById('white-score').textContent = sc.white;
+
+  const breakdown = document.getElementById('score-breakdown');
+  breakdown.innerHTML = `
+    <span>🔴外圈: ${sc.redOuter}分</span>
+    <span>🔴內圈: ${sc.redInner}分</span>
+    <span>🔴連線: ${sc.redLines}條</span>
+    <span>⚪外圈: ${sc.whiteOuter}分</span>
+    <span>⚪內圈: ${sc.whiteInner}分</span>
+    <span>⚪連線: ${sc.whiteLines}條</span>
+  `;
+}
+
+function setMessage(msg) {
+  document.getElementById('message-bar').textContent = msg;
+}
+
+// ====================================================
+// 遊戲邏輯
+// ====================================================
+function handleCardClick(player, idx) {
+  if (gs.currentPlayer !== player || gs.gameEnded) return;
+  if (gs.aiPlayer === player) return;
+
+  const hand = player === 'red' ? gs.redHand : gs.whiteHand;
+  const card = hand[idx];
+
+  if (card.isWild) {
+    gs.pendingWild = { player, index: idx };
+    showModal('wild-modal');
+    return;
+  }
+
+  gs.selectedCard = { player, index: idx };
+  renderHands();
+  highlightValidMoves();
+  setMessage(`已選擇 ${card.suit}${card.value}，請點擊棋盤放置。`);
+}
+
+function selectWildSuit(suit) {
+  if (!gs.pendingWild) return;
+  const { player, index } = gs.pendingWild;
+  const hand = player === 'red' ? gs.redHand : gs.whiteHand;
+  hand[index] = { ...hand[index], suit, resolvedSuit: suit };
+
+  gs.selectedCard = { player, index };
+  gs.pendingWild = null;
+  hideModal('wild-modal');
+  renderHands();
+  highlightValidMoves();
+  setMessage(`萬用牌設為 ${suit}，請點擊棋盤放置。`);
+}
+
+function handleCellClick(cellIdx) {
+  if (!gs.selectedCard || gs.gameEnded) return;
+  if (gs.board[cellIdx] !== null) return;
+  if (!isValidMove(cellIdx)) return;
+  if (gs.aiPlayer === gs.currentPlayer) return;
+
+  placeCard(cellIdx);
+}
+
+function placeCard(cellIdx) {
+  const { player, index: cardIdx } = gs.selectedCard;
+  const hand = player === 'red' ? gs.redHand : gs.whiteHand;
+  const card = hand.splice(cardIdx, 1)[0];
+
+  gs.board[cellIdx] = { ...card, owner: player };
+
+  // 戰鬥結算
+  const battles = resolveBattles(cellIdx);
+
+  gs.selectedCard = null;
+
+  // 清除高亮
+  document.querySelectorAll('.cell').forEach(c => c.classList.remove('valid-move'));
+
+  renderAll();
+
+  // 訊息
+  if (battles.length > 0) {
+    const msgs = battles.map(b =>
+      b.won ? `⚔️ 擊敗 ${b.target.suit}${b.target.value}` : `🛡️ 被 ${b.target.suit}${b.target.value} 擊退`
+    ).join('　');
+    setMessage(msgs);
+  } else {
+    setMessage(`${player === 'red' ? '🔴' : '⚪'} 放置 ${card.suit}${card.isWild ? '萬' : card.value} 無相鄰敵方牌`);
+  }
+
+  // 檢查結束
+  if (checkGameEnd()) {
+    setTimeout(showGameResult, 800);
+    return;
+  }
+
+  // 換回合
+  gs.currentPlayer = gs.currentPlayer === 'red' ? 'white' : 'red';
+  renderAll();
+
+  // AI 回合
+  if (gs.aiPlayer === gs.currentPlayer && !gs.gameEnded) {
+    const delay = { easy: 1200, normal: 1000, hard: 800 }[settings.difficulty] || 1000;
+    setTimeout(doAiTurn, delay);
+  }
+}
+
+function resolveBattles(placedIdx) {
+  const placed = gs.board[placedIdx];
+  const battles = [];
+
+  getNeighbors(placedIdx).forEach(nIdx => {
+    const neighbor = gs.board[nIdx];
+    if (!neighbor || neighbor.owner === placed.owner) return;
+
+    const result = compareCards(placed, neighbor);
+    if (result === 'attacker') {
+      gs.board[nIdx] = { ...gs.board[nIdx], owner: placed.owner };
+      gs.flippedCells.add(nIdx);
+      battles.push({ won: true, target: neighbor });
+    } else if (result === 'defender') {
+      gs.board[placedIdx] = { ...gs.board[placedIdx], owner: neighbor.owner };
+      gs.flippedCells.add(placedIdx);
+      battles.push({ won: false, target: neighbor });
+    }
+  });
+
+  return battles;
+}
+
+function compareCards(a, b) {
+  const aSuit = a.resolvedSuit || a.suit;
+  const bSuit = b.resolvedSuit || b.suit;
+
+  if (aSuit === bSuit) {
+    if (a.value > b.value) return 'attacker';
+    if (a.value < b.value) return 'defender';
+    return 'tie'; // 相同數字防守方勝（原控制者）
+  }
+  if (SUIT_BEATS[aSuit] === bSuit) return 'attacker';
+  if (SUIT_BEATS[bSuit] === aSuit) return 'defender';
+  return 'tie';
+}
+
+// ====================================================
+// 輔助函數
+// ====================================================
+function isValidMove(idx) {
+  if (gs.board[idx] !== null) return false;
+  if (gs.board.every(c => c === null)) return true;
+  return getNeighbors(idx).some(n => gs.board[n] !== null);
+}
+
+function getNeighbors(idx) {
+  const r = Math.floor(idx / 4), c = idx % 4;
+  const neighbors = [];
+  if (r > 0) neighbors.push(idx - 4);
+  if (r < 3) neighbors.push(idx + 4);
+  if (c > 0) neighbors.push(idx - 1);
+  if (c < 3) neighbors.push(idx + 1);
+  return neighbors;
+}
+
+function highlightValidMoves() {
+  document.querySelectorAll('.cell').forEach((cell, idx) => {
+    cell.classList.toggle('valid-move', isValidMove(idx));
+  });
+}
+
+function checkGameEnd() {
+  return gs.board.every(c => c !== null) ||
+    (gs.redHand.length === 0 && gs.whiteHand.length === 0);
+}
+
+// ====================================================
+// 計分
+// ====================================================
+function calcScore() {
+  let red = 0, white = 0;
+  let redOuter = 0, redInner = 0, whiteOuter = 0, whiteInner = 0;
+  let redLines = 0, whiteLines = 0;
+
+  gs.board.forEach((card, idx) => {
+    if (!card) return;
+    const isInner = INNER_CELLS.includes(idx);
+    const pts = isInner ? 2 : 1;
+    if (card.owner === 'red') {
+      red += pts;
+      if (isInner) redInner += pts; else redOuter += pts;
+    } else {
+      white += pts;
+      if (isInner) whiteInner += pts; else whiteOuter += pts;
+    }
+  });
+
+  const lines = [
+    [0,1,2,3],[4,5,6,7],[8,9,10,11],[12,13,14,15],
+    [0,4,8,12],[1,5,9,13],[2,6,10,14],[3,7,11,15],
+    [0,5,10,15],[3,6,9,12]
+  ];
+
+  lines.forEach(line => {
+    const cards = line.map(i => gs.board[i]).filter(Boolean);
+    if (cards.length === 4) {
+      if (cards.every(c => c.owner === 'red')) { red += 3; redLines++; }
+      else if (cards.every(c => c.owner === 'white')) { white += 3; whiteLines++; }
+    }
+  });
+
+  return { red, white, redOuter, redInner, whiteOuter, whiteInner, redLines, whiteLines };
+}
+
+// ====================================================
+// 遊戲結束
+// ====================================================
+function showGameResult() {
+  gs.gameEnded = true;
+  const sc = calcScore();
+
+  let winner, winnerEmoji, titleText;
+  if (sc.red > sc.white) {
+    winner = 'red'; winnerEmoji = '🔴'; titleText = '紅方獲勝！';
+  } else if (sc.white > sc.red) {
+    winner = 'white'; winnerEmoji = '⚪'; titleText = '白方獲勝！';
+  } else {
+    winner = 'red'; winnerEmoji = '🔴'; titleText = '平手！紅方勝出！';
+  }
+
+  // PvE 判斷
+  if (settings.mode === 'pve') {
+    if (winner === settings.playerColor) {
+      titleText = '🎉 你贏了！';
+    } else if (winner !== settings.playerColor && sc.red !== sc.white) {
+      titleText = '😔 電腦獲勝...';
+    }
+  }
+
+  document.getElementById('result-winner').textContent = winnerEmoji + '🏆';
+  document.getElementById('result-title').textContent = titleText;
+  document.getElementById('result-red-score').textContent = sc.red;
+  document.getElementById('result-white-score').textContent = sc.white;
+  document.getElementById('result-red-detail').textContent =
+    `外圈${sc.redOuter} + 內圈${sc.redInner} + 連線${sc.redLines * 3}`;
+  document.getElementById('result-white-detail').textContent =
+    `外圈${sc.whiteOuter} + 內圈${sc.whiteInner} + 連線${sc.whiteLines * 3}`;
+
+  showModal('result-modal');
+  updateStatus();
+}
+
+// ====================================================
+// AI 系統
+// ====================================================
+function doAiTurn() {
+  if (gs.gameEnded || gs.currentPlayer !== gs.aiPlayer) return;
+
+  const hand = gs.aiPlayer === 'red' ? gs.redHand : gs.whiteHand;
+  if (hand.length === 0) return;
+
+  let move;
+  switch (settings.difficulty) {
+    case 'easy':   move = aiEasy(hand); break;
+    case 'normal': move = aiNormal(hand); break;
+    case 'hard':   move = aiHard(hand); break;
+    default:       move = aiNormal(hand);
+  }
+
+  if (!move) return;
+
+  // 處理萬用牌
+  if (hand[move.cardIdx].isWild) {
+    hand[move.cardIdx] = { ...hand[move.cardIdx], suit: move.wildSuit || '🗿', resolvedSuit: move.wildSuit || '🗿' };
+  }
+
+  gs.selectedCard = { player: gs.aiPlayer, index: move.cardIdx };
+  placeCard(move.cellIdx);
+}
+
+// ---- 簡單 AI：隨機選牌隨機放 ----
+function aiEasy(hand) {
+  const empties = getValidCells();
+  if (empties.length === 0) return null;
+
+  const cardIdx = Math.floor(Math.random() * hand.length);
+  const cellIdx = empties[Math.floor(Math.random() * empties.length)];
+  const wildSuit = ['✂️', '🗿', '📄'][Math.floor(Math.random() * 3)];
+
+  return { cardIdx, cellIdx, wildSuit };
+}
+
+// ---- 普通 AI：評估每個落點，選最優 ----
+function aiNormal(hand) {
+  const empties = getValidCells();
+  if (empties.length === 0) return null;
+
+  let best = null, bestScore = -Infinity;
+
+  // 隨機打亂順序避免固定模式
+  const shuffledHand = hand.map((c, i) => ({ card: c, idx: i })).sort(() => Math.random() - 0.5);
+  const shuffledCells = [...empties].sort(() => Math.random() - 0.5);
+
+  shuffledHand.forEach(({ card, idx: cardIdx }) => {
+    const suits = card.isWild ? ['✂️', '🗿', '📄'] : [card.suit];
+
+    suits.forEach(suit => {
+      shuffledCells.forEach(cellIdx => {
+        const score = evalMove(card, suit, cellIdx, gs.aiPlayer);
+        if (score > bestScore) {
+          bestScore = score;
+          best = { cardIdx, cellIdx, wildSuit: suit };
+        }
+      });
+    });
+  });
+
+  return best;
+}
+
+// ---- 困難 AI：深度評估 + 阻擋策略 ----
+function aiHard(hand) {
+  const empties = getValidCells();
+  if (empties.length === 0) return null;
+
+  let best = null, bestScore = -Infinity;
+
+  hand.forEach((card, cardIdx) => {
+    const suits = card.isWild ? ['✂️', '🗿', '📄'] : [card.suit];
+
+    suits.forEach(suit => {
+      empties.forEach(cellIdx => {
+        // 模擬放置
+        const simScore = simulateMove(card, suit, cellIdx, gs.aiPlayer);
+        if (simScore > bestScore) {
+          bestScore = simScore;
+          best = { cardIdx, cellIdx, wildSuit: suit };
+        }
+      });
+    });
+  });
+
+  return best;
+}
+
+// 評估單步落點分數（普通難度）
+function evalMove(card, suit, cellIdx, player) {
+  const opponent = player === 'red' ? 'white' : 'red';
+  const tempCard = { ...card, suit, resolvedSuit: suit, owner: player };
+  let score = 0;
+
+  // 位置分
+  score += INNER_CELLS.includes(cellIdx) ? 4 : 1;
+
+  // 相鄰戰鬥預測
+  getNeighbors(cellIdx).forEach(nIdx => {
+    const neighbor = gs.board[nIdx];
+    if (!neighbor) return;
+
+    if (neighbor.owner === opponent) {
+      const result = compareCards(tempCard, neighbor);
+      if (result === 'attacker') score += 5; // 能擊敗對手
+      else if (result === 'defender') score -= 3; // 會被翻面
+    } else {
+      score += 1; // 鞏固友方
+    }
+  });
+
+  // 連線潛力
+  score += calcLinePotential(cellIdx, player) * 2;
+
+  // 阻擋對手連線
+  score += calcBlockScore(cellIdx, opponent) * 1.5;
+
+  return score;
+}
+
+// 模擬放置後的盤面分數（困難難度）
+function simulateMove(card, suit, cellIdx, player) {
+  const opponent = player === 'red' ? 'white' : 'red';
+
+  // 深拷貝棋盤
+  const simBoard = gs.board.map(c => c ? { ...c } : null);
+  const tempCard = { ...card, suit, resolvedSuit: suit, owner: player };
+  simBoard[cellIdx] = tempCard;
+
+  // 模擬戰鬥
+  let flips = 0;
+  getNeighbors(cellIdx).forEach(nIdx => {
+    const neighbor = simBoard[nIdx];
+    if (!neighbor || neighbor.owner === player) return;
+    const result = compareCards(tempCard, neighbor);
+    if (result === 'attacker') { simBoard[nIdx] = { ...neighbor, owner: player }; flips++; }
+    else if (result === 'defender') { simBoard[cellIdx] = { ...tempCard, owner: opponent }; flips--; }
+  });
+
+  // 計算模擬後分數差
+  let myScore = 0, oppScore = 0;
+  simBoard.forEach((c, idx) => {
+    if (!c) return;
+    const pts = INNER_CELLS.includes(idx) ? 2 : 1;
+    if (c.owner === player) myScore += pts;
+    else oppScore += pts;
+  });
+
+  // 連線加分
+  const lines = [
+    [0,1,2,3],[4,5,6,7],[8,9,10,11],[12,13,14,15],
+    [0,4,8,12],[1,5,9,13],[2,6,10,14],[3,7,11,15],
+    [0,5,10,15],[3,6,9,12]
+  ];
+  lines.forEach(line => {
+    const cards = line.map(i => simBoard[i]).filter(Boolean);
+    if (cards.length === 4) {
+      if (cards.every(c => c.owner === player)) myScore += 3;
+      else if (cards.every(c => c.owner === opponent)) oppScore += 3;
+    }
+  });
+
+  // 連線潛力加分
+  myScore += calcLinePotentialOnBoard(simBoard, cellIdx, player) * 1.5;
+  oppScore += calcLinePotentialOnBoard(simBoard, cellIdx, opponent) * 1.2;
+
+  return myScore - oppScore + flips * 2;
+}
+
+// 計算連線潛力
+function calcLinePotential(cellIdx, player) {
+  const lines = [
+    [0,1,2,3],[4,5,6,7],[8,9,10,11],[12,13,14,15],
+    [0,4,8,12],[1,5,9,13],[2,6,10,14],[3,7,11,15],
+    [0,5,10,15],[3,6,9,12]
+  ];
+  let potential = 0;
+  lines.forEach(line => {
+    if (!line.includes(cellIdx)) return;
+    const cells = line.map(i => gs.board[i]);
+    const myCount = cells.filter(c => c && c.owner === player).length;
+    const oppCount = cells.filter(c => c && c.owner !== player && c !== null).length;
+    if (oppCount === 0) potential += myCount;
+  });
+  return potential;
+}
+
+function calcLinePotentialOnBoard(board, cellIdx, player) {
+  const lines = [
+    [0,1,2,3],[4,5,6,7],[8,9,10,11],[12,13,14,15],
+    [0,4,8,12],[1,5,9,13],[2,6,10,14],[3,7,11,15],
+    [0,5,10,15],[3,6,9,12]
+  ];
+  let potential = 0;
+  lines.forEach(line => {
+    if (!line.includes(cellIdx)) return;
+    const cells = line.map(i => board[i]);
+    const myCount = cells.filter(c => c && c.owner === player).length;
+    const oppCount = cells.filter(c => c && c.owner !== player && c !== null).length;
+    if (oppCount === 0) potential += myCount;
+  });
+  return potential;
+}
+
+// 計算阻擋分數
+function calcBlockScore(cellIdx, opponent) {
+  const lines = [
+    [0,1,2,3],[4,5,6,7],[8,9,10,11],[12,13,14,15],
+    [0,4,8,12],[1,5,9,13],[2,6,10,14],[3,7,11,15],
+    [0,5,10,15],[3,6,9,12]
+  ];
+  let blockScore = 0;
+  lines.forEach(line => {
+    if (!line.includes(cellIdx)) return;
+    const cells = line.map(i => gs.board[i]);
+    const oppCount = cells.filter(c => c && c.owner === opponent).length;
+    const myCount = cells.filter(c => c && c.owner !== opponent && c !== null).length;
+    if (myCount === 0 && oppCount >= 2) blockScore += oppCount * 2;
+  });
+  return blockScore;
+}
+
+// 取得所有合法落點
+function getValidCells() {
+  const empties = [];
+  for (let i = 0; i < 16; i++) {
+    if (isValidMove(i)) empties.push(i);
+  }
+  return empties;
+}
+
+// ====================================================
+// 彈窗控制
+// ====================================================
+function showModal(id) { document.getElementById(id).classList.add('show'); }
+function hideModal(id) { document.getElementById(id).classList.remove('show'); }
+</script>
+</body>
+</html>
